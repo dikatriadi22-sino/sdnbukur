@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Informasi SDN Bukur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#1e3a8a', secondary: '#3b82f6', accent: '#f59e0b' },
+                    animation: { 'fade-in': 'fadeIn 0.4s ease-out forwards', 'slide-up': 'slideUp 0.5s ease-out forwards' },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .menu-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .menu-card:active { transform: scale(0.96); }
+        iframe { width: 100%; height: calc(100vh - 250px); border: none; border-radius: 12px; }
+        .folder-card:hover i { transform: scale(1.1); color: #f59e0b; }
+        #splash-screen { transition: opacity 0.5s ease-out; }
+        
+        /* Scrollbar Halus */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 bg-primary z-[9999] flex flex-col items-center justify-center text-white text-center p-6">
+        <i class="fas fa-graduation-cap text-6xl mb-4 animate-bounce"></i>
+        <h1 class="text-2xl font-bold tracking-wider mb-2 uppercase">SDN BUKUR</h1>
+        <p class="text-sm opacity-80" id="splash-text">Menyiapkan Layanan Digital...</p>
+    </div>
+
+    <!-- HEADER -->
+    <header class="bg-primary bg-gradient-to-r from-primary to-secondary text-white p-6 md:p-8 rounded-b-[2.5rem] shadow-xl relative z-20 mb-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">SDN BUKUR</h1>
+                <p class="text-sm md:text-base text-blue-100 font-medium mt-1">Berprestasi, Brebudaya, Berwawasan Iptek, Berlandaskan Imtaq dan Lingkungan</p>
+            </div>
+            <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-md"><i class="fas fa-school text-3xl"></i></div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 pb-12 relative z-10 min-h-[60vh]">
+        
+        <!-- ==================== DASHBOARD ==================== -->
+        <section id="view-dashboard" class="view-section animate-fade-in">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 px-2"><i class="fas fa-th-large mr-2 text-secondary"></i> Menu Utama</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div onclick="App.nav('qr-scanner')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-secondary">
+                    <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-3 text-secondary text-2xl shadow-inner"><i class="fas fa-qrcode"></i></div>
+                    <span class="font-bold text-sm text-center">Absensi QR</span>
+                </div>
+                <div onclick="App.nav('absensi-manual')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-green-500">
+                    <div class="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-3 text-green-500 text-2xl shadow-inner"><i class="fas fa-edit"></i></div>
+                    <span class="font-bold text-sm text-center">Absen Manual</span>
+                </div>
+                <div onclick="App.nav('rekap-absen')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-amber-500">
+                    <div class="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-3 text-amber-500 text-2xl shadow-inner"><i class="fas fa-file-alt"></i></div>
+                    <span class="font-bold text-sm text-center">Rekap Absen</span>
+                </div>
+                <div onclick="App.nav('data-siswa')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-purple-500">
+                    <div class="w-14 h-14 bg-purple-50 rounded-full flex items-center justify-center mb-3 text-purple-500 text-2xl shadow-inner"><i class="fas fa-user-graduate"></i></div>
+                    <span class="font-bold text-sm text-center">Data Siswa</span>
+                </div>
+                <div onclick="App.nav('data-guru')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-red-500">
+                    <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-500 text-2xl shadow-inner"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <span class="font-bold text-sm text-center">Data Guru</span>
+                </div>
+                
+                <!-- TOMBOL PROFIL SEKOLAH (Diperbarui Linknya) -->
+                <div onclick="App.nav('profil-sekolah')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-indigo-500">
+                    <div class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mb-3 text-indigo-500 text-2xl shadow-inner"><i class="fas fa-building"></i></div>
+                    <span class="font-bold text-sm text-center">Profil Sekolah</span>
+                </div>
+
+                <div onclick="App.nav('info-placeholder', 'Perpustakaan')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-teal-500">
+                    <div class="w-14 h-14 bg-teal-50 rounded-full flex items-center justify-center mb-3 text-teal-500 text-2xl shadow-inner"><i class="fas fa-book-reader"></i></div>
+                    <span class="font-bold text-sm text-center">Perpustakaan</span>
+                </div>
+                <div onclick="App.nav('galeri')" class="menu-card glass rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer border-b-4 border-b-pink-500">
+                    <div class="w-14 h-14 bg-pink-50 rounded-full flex items-center justify-center mb-3 text-pink-500 text-2xl shadow-inner"><i class="fas fa-images"></i></div>
+                    <span class="font-bold text-sm text-center">Galeri</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW: PROFIL SEKOLAH ==================== -->
+        <section id="view-profil-sekolah" class="view-section hidden animate-slide-up">
+            <div class="glass p-6 md:p-8 rounded-3xl mb-6 shadow-lg relative">
+                <!-- Header & Nav -->
+                <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-6 border-b border-slate-200 pb-4 gap-4">
+                    <h2 class="text-2xl font-bold text-slate-800"><i class="fas fa-building text-indigo-500 mr-2"></i> Profil Sekolah</h2>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button id="btn-edit-profil" onclick="App.Profil.toggleEdit(true)" class="flex-1 md:flex-none bg-indigo-100 text-indigo-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-600 hover:text-white transition shadow-sm"><i class="fas fa-edit mr-1"></i> Edit Profil</button>
+                        <button onclick="App.nav('dashboard')" class="flex-1 md:flex-none bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition shadow-sm"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
+                    </div>
+                </div>
+
+                <div id="loader-profil" class="hidden py-12 text-center text-indigo-500">
+                    <i class="fas fa-circle-notch fa-spin text-4xl mb-3"></i>
+                    <p class="font-bold text-sm">Memuat profil...</p>
+                </div>
+
+                <!-- READ MODE (Hanya Menampilkan Data) -->
+                <div id="profil-read-mode" class="space-y-6">
+                    <!-- Konten akan disuntik (inject) lewat Javascript di sini -->
+                </div>
+
+                <!-- EDIT MODE (Form Pengisian) -->
+                <div id="profil-edit-mode" class="hidden space-y-5 animate-fade-in">
+                    
+                    <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 shadow-inner">
+                        <label class="block text-xs font-extrabold text-indigo-700 uppercase mb-2">Foto / Logo SD</label>
+                        <div class="flex items-center gap-4">
+                            <img id="preview-profil-logo" src="" class="h-20 w-20 object-contain hidden bg-white p-2 rounded-xl border shadow-sm">
+                            <input type="file" accept="image/*" onchange="App.Profil.handleLogoUpload(event)" class="text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition cursor-pointer">
+                        </div>
+                        <p class="text-[10px] text-indigo-500 mt-2"><i class="fas fa-info-circle"></i> Gunakan file gambar berukuran kecil (Maks 500KB) agar sistem tetap cepat.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Identitas & Legalitas Sekolah</label><textarea id="input-profil-identitas" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Cth: NPSN, Alamat lengkap, dll..."></textarea></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Visi dan Misi</label><textarea id="input-profil-visi" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Tuliskan visi & misi sekolah..."></textarea></div>
+                        
+                        <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Sambutan Kepala Sekolah</label><textarea id="input-profil-sambutan" rows="4" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Tuliskan kata sambutan..."></textarea></div>
+                        
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Sejarah Singkat Sekolah</label><textarea id="input-profil-sejarah" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Kapan berdiri, sejarah singkat..."></textarea></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Struktur Organisasi</label><textarea id="input-profil-struktur" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Kepala Sekolah, Komite, dll..."></textarea></div>
+                        
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data Pendidik & Tenaga Kependidikan</label><textarea id="input-profil-pendidik" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Ringkasan jumlah guru & staf..."></textarea></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fasilitas Sekolah</label><textarea id="input-profil-fasilitas" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Cth: Ruang kelas, perpus, lab..."></textarea></div>
+                        
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Akreditasi & Prestasi</label><textarea id="input-profil-akreditasi" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Predikat akreditasi, penghargaan..."></textarea></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Keunggulan / Program Khusus</label><textarea id="input-profil-keunggulan" rows="3" class="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 outline-none text-sm font-medium transition" placeholder="Ekstrakurikuler unggulan, dll..."></textarea></div>
+                    </div>
+
+                    <div class="border-t border-slate-200 pt-5 flex flex-col md:flex-row justify-end gap-3">
+                        <button onclick="App.Profil.toggleEdit(false)" class="px-6 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition text-sm">Batal</button>
+                        <button id="btn-save-profil" onclick="App.Profil.save()" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-md hover:bg-indigo-700 transition text-sm"><i class="fas fa-save mr-2"></i> Simpan Profil</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== GALERI (WEBVIEW DRIVE) ==================== -->
+        <section id="view-galeri" class="view-section hidden animate-slide-up">
+            <div class="glass p-6 rounded-3xl mb-4 shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800"><i class="fas fa-images text-pink-500 mr-2"></i> Galeri Sekolah</h2>
+                    <button onclick="App.nav('dashboard')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition"><i class="fas fa-arrow-left"></i> Kembali</button>
+                </div>
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm font-medium flex items-center shadow-sm">
+                    <i class="fas fa-info-circle text-2xl mr-3"></i>
+                    <div>Untuk mengunggah file atau membuat folder album baru, silakan gunakan ikon <b>Buka di Tab Baru <i class="fas fa-external-link-alt ml-1 text-xs"></i></b> di sudut kanan atas galeri di bawah ini.</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-2 rounded-3xl shadow-xl border border-slate-200">
+                <iframe src="https://drive.google.com/embeddedfolderview?id=1JoWzQPjnZfBYeQxsOh146CYei2X8XjhI#grid" class="w-full h-[65vh] rounded-2xl bg-slate-50" allow="autoplay"></iframe>
+            </div>
+        </section>
+
+        <!-- VIEW: QR SCANNER -->
+        <div id="view-qr-scanner" class="view-section hidden py-4 animate-slide-up">
+            <div class="glass p-8 rounded-3xl shadow-lg text-center relative overflow-hidden border-t-4 border-t-secondary">
+                <div class="absolute -top-10 -right-10 text-blue-100 opacity-50">
+                    <i class="fas fa-qrcode text-[150px]"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800">Pemindai QR</h2>
+                        <button onclick="App.nav('dashboard')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-300 transition">Kembali</button>
+                    </div>
+                    
+                    <div id="scanner-main-menu" class="py-6">
+                        <div class="w-32 h-32 mx-auto bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6 shadow-inner border-4 border-white">
+                            <i class="fas fa-camera text-6xl"></i>
+                        </div>
+                        <p class="text-gray-600 mb-8 max-w-sm mx-auto">Ketuk tombol di bawah ini untuk mengambil foto QR Code menggunakan kamera bawaan HP Anda. Sistem akan memprosesnya secara otomatis.</p>
+                        
+                        <label for="qr-input-file" class="cursor-pointer bg-green-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:bg-green-700 transition transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center mx-auto w-full md:w-auto">
+                            <i class="fas fa-camera mr-3 text-2xl"></i> Ambil Foto QR
+                        </label>
+                        <input type="file" id="qr-input-file" accept="image/*" capture="environment" class="hidden" onchange="App.Scanner.processImage(event)">
+                        
+                        <div id="reader" class="hidden"></div>
+                    </div>
+
+                    <div id="qr-loading" class="hidden mt-6 text-center text-blue-600 font-semibold bg-blue-50 p-4 rounded-xl">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Menganalisis Foto...</p>
+                    </div>
+                    <div id="qr-error" class="hidden mt-6 p-4 bg-red-100 border border-red-200 rounded-xl text-red-800 text-sm shadow-sm text-left">
+                        <p class="font-bold mb-1"><i class="fas fa-exclamation-circle mr-1"></i> QR Code Tidak Terdeteksi!</p>
+                        <p class="opacity-90 text-xs">Pastikan foto tidak blur dan QR Code terlihat jelas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: WEBVIEW (Tampil Form Absen dari Scanner) -->
+        <div id="view-webview" class="view-section hidden py-4 animate-slide-up">
+            <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                <span class="font-bold text-blue-800 truncate max-w-[200px]" id="webview-title"><i class="fas fa-globe mr-2"></i> Halaman Absensi</span>
+                <button onclick="App.nav('dashboard')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition">Tutup Form</button>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 p-1">
+                <iframe id="main-iframe" src="" class="w-full h-[65vh] rounded-lg"></iframe>
+            </div>
+        </div>
+
+        <!-- VIEW: ABSENSI MANUAL / MENU SPREADSHEET -->
+        <section id="view-iframe-menu" class="view-section hidden animate-slide-up">
+            <div class="glass p-6 rounded-3xl mb-4 shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800" id="iframe-menu-title">Menu</h2>
+                    <button onclick="App.nav('dashboard')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition"><i class="fas fa-arrow-left"></i></button>
+                </div>
+                
+                <div class="bg-white p-4 rounded-2xl border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Kelas Tujuan:</label>
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <select id="iframe-menu-select" class="flex-1 p-3 border-2 border-slate-200 rounded-xl font-medium focus:border-secondary focus:ring-0 outline-none transition cursor-pointer">
+                            <option value="">-- Silakan Pilih --</option>
+                            <option value="1">Kelas 1</option>
+                            <option value="2">Kelas 2</option>
+                            <option value="3">Kelas 3</option>
+                            <option value="4">Kelas 4</option>
+                            <option value="5">Kelas 5</option>
+                            <option value="6">Kelas 6</option>
+                        </select>
+                        <button id="iframe-menu-btn" class="bg-secondary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-blue-600 transition whitespace-nowrap">
+                            Buka Tautan <i class="fas fa-external-link-alt ml-1 text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="iframe-menu-container" class="hidden bg-white p-2 rounded-3xl shadow-xl border border-slate-200">
+                <iframe id="iframe-menu-frame" src="" class="w-full h-[60vh] rounded-2xl bg-slate-50"></iframe>
+            </div>
+        </section>
+
+        <!-- VIEW: PLACEHOLDER -->
+        <section id="view-info-placeholder" class="view-section hidden animate-pop">
+            <div class="glass p-12 rounded-[2.5rem] shadow-lg text-center">
+                <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <i class="fas fa-tools text-5xl text-slate-400"></i>
+                </div>
+                <h2 id="placeholder-title" class="text-3xl font-extrabold text-slate-800 mb-3 tracking-tight">Judul</h2>
+                <p class="text-slate-500 mb-8 max-w-md mx-auto">Halaman ini sedang dalam tahap pengembangan atau proses integrasi. Silakan kembali lagi nanti.</p>
+                <button onclick="App.nav('dashboard')" class="bg-slate-800 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg hover:bg-slate-900 transition">Kembali ke Beranda</button>
+            </div>
+        </section>
+
+        <!-- VIEW: DATA SISWA -->
+        <div id="view-data-siswa" class="view-section hidden py-4 animate-slide-up">
+            <div class="glass p-6 rounded-2xl shadow-lg mb-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-users text-purple-600 mr-2"></i> Data Siswa</h2>
+                    <button onclick="App.nav('dashboard')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-300 transition">Kembali</button>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-3 mb-6">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-siswa" onkeyup="App.Siswa.filter()" class="w-full bg-white border-2 border-slate-200 pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:border-purple-500 transition font-medium" placeholder="Cari nama, kelas, NISN...">
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="App.Siswa.openModal(-1)" class="bg-purple-600 text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:bg-purple-700 transition flex items-center justify-center whitespace-nowrap">
+                            <i class="fas fa-plus mr-2"></i> Tambah
+                        </button>
+                        <label for="csv-upload" class="cursor-pointer bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center justify-center whitespace-nowrap">
+                            <i class="fas fa-file-import mr-2"></i> Import
+                        </label>
+                        <input type="file" id="csv-upload" accept=".csv" class="hidden" onchange="App.Siswa.importCSV(event)">
+                        
+                        <button onclick="App.Siswa.clearAll()" class="bg-red-100 text-red-600 px-4 py-3 rounded-xl hover:bg-red-200 transition" title="Hapus Semua Data Siswa">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-4" id="count-siswa">Menyiapkan data...</p>
+
+                <div id="loader-siswa" class="hidden text-center py-10">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-purple-600 mb-3"></i>
+                    <p class="text-gray-600 font-semibold mt-2">Sinkronisasi dengan Google Drive...</p>
+                </div>
+
+                <div id="list-siswa" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 pb-4">
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: DATA GURU -->
+        <div id="view-data-guru" class="view-section hidden py-4 animate-slide-up">
+            <div class="glass p-6 rounded-2xl shadow-lg mb-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-chalkboard-teacher text-red-600 mr-2"></i> Data Guru & Staf</h2>
+                    <button onclick="App.nav('dashboard')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-300 transition">Kembali</button>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-3 mb-6">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="search-guru" onkeyup="App.Guru.filter()" class="w-full bg-white border-2 border-slate-200 pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:border-red-500 transition font-medium" placeholder="Cari nama, NIP, jabatan...">
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="App.Guru.openModal(-1)" class="bg-red-600 text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:bg-red-700 transition flex items-center justify-center whitespace-nowrap">
+                            <i class="fas fa-plus mr-2"></i> Tambah
+                        </button>
+                        <label for="csv-upload-guru" class="cursor-pointer bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:bg-blue-700 transition flex items-center justify-center whitespace-nowrap">
+                            <i class="fas fa-file-import mr-2"></i> Import
+                        </label>
+                        <input type="file" id="csv-upload-guru" accept=".csv" class="hidden" onchange="App.Guru.importCSV(event)">
+                        <button onclick="App.Guru.clearAll()" class="bg-red-100 text-red-600 px-4 py-3 rounded-xl hover:bg-red-200 transition" title="Hapus Semua Data Guru">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-4" id="count-guru">Menyiapkan data...</p>
+
+                <div id="loader-guru" class="hidden text-center py-10">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-red-600 mb-3"></i>
+                    <p class="text-gray-600 font-semibold mt-2">Sinkronisasi dengan Google Drive...</p>
+                </div>
+
+                <div id="list-guru" class="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 pb-4">
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Modal Konfirmasi QR -->
+    <div id="modal-qr-confirm" class="fixed inset-0 bg-slate-900/80 hidden z-[80] flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-pop text-center relative overflow-hidden">
+            <div class="w-24 h-24 mx-auto bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm relative z-10">
+                <i class="fas fa-check-circle text-5xl"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-slate-800 mb-2 relative z-10">QR Terbaca!</h3>
+            <p class="text-slate-500 text-sm mb-6 relative z-10">Tautan absensi ditemukan. Lanjutkan untuk absen?</p>
+            
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-8 font-mono text-xs text-slate-600 break-all max-h-24 overflow-y-auto relative z-10 text-left" id="qr-result-text"></div>
+            
+            <div class="flex gap-3 relative z-10">
+                <button onclick="App.Scanner.closeConfirm()" class="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition">Batal</button>
+                <button onclick="App.Scanner.openLink()" class="flex-1 py-3.5 bg-secondary text-white rounded-xl font-bold hover:bg-blue-600 shadow-md transition transform hover:scale-105 active:scale-95">Absen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Siswa -->
+    <div id="modal-siswa" class="fixed inset-0 bg-slate-900/60 hidden z-[70] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full max-w-md shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem]">
+                <h3 class="font-extrabold text-xl text-slate-800" id="modal-siswa-title">Tambah Siswa</h3>
+                <button onclick="App.Siswa.closeModal()" class="w-8 h-8 bg-slate-200 rounded-full text-slate-600 flex items-center justify-center hover:bg-red-500 hover:text-white transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4">
+                <input type="hidden" id="form-siswa-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap *</label>
+                    <input type="text" id="form-siswa-nama" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none font-bold text-slate-700 transition" placeholder="Masukkan nama...">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Jenis Kelamin</label>
+                        <select id="form-siswa-jk" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none font-bold text-slate-700">
+                            <option value="L">Laki-laki</option><option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Rombel/Kelas</label>
+                        <input type="text" id="form-siswa-kelas" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none font-bold text-slate-700" placeholder="Kelas 1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tempat Lahir</label>
+                        <input type="text" id="form-siswa-tempat" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none text-sm font-medium" placeholder="Kota">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tgl Lahir</label>
+                        <input type="text" id="form-siswa-tanggal" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none text-sm font-medium" placeholder="YYYY-MM-DD">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NISN</label>
+                    <input type="text" id="form-siswa-nisn" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none text-sm font-medium font-mono" placeholder="00000000">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Alamat</label>
+                        <input type="text" id="form-siswa-alamat" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none text-sm font-medium" placeholder="Jalan/RT">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dusun</label>
+                        <input type="text" id="form-siswa-dusun" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-purple-500 outline-none text-sm font-medium" placeholder="Dusun">
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-[2rem]">
+                <button onclick="App.Siswa.save()" class="w-full py-4 bg-purple-600 text-white rounded-xl font-bold shadow-md hover:bg-purple-700 transition">Simpan Data Siswa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Guru -->
+    <div id="modal-guru" class="fixed inset-0 bg-slate-900/60 hidden z-[70] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full max-w-lg shadow-2xl animate-slide-up flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem]">
+                <h3 class="font-extrabold text-xl text-slate-800" id="modal-guru-title">Tambah Guru</h3>
+                <button onclick="App.Guru.closeModal()" class="w-8 h-8 bg-slate-200 rounded-full text-slate-600 flex items-center justify-center hover:bg-red-500 hover:text-white transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4">
+                <input type="hidden" id="form-guru-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap & Gelar *</label>
+                    <input type="text" id="form-guru-nama" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none font-bold text-slate-700 transition" placeholder="AGUNG EKO SAPUTRO, S.Pd">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NIP</label>
+                        <input type="text" id="form-guru-nip" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none font-medium font-mono text-sm" placeholder="-">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Jenis Kelamin</label>
+                        <select id="form-guru-jk" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none font-bold text-slate-700">
+                            <option value="L">Laki-laki</option><option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tempat Lahir</label>
+                        <input type="text" id="form-guru-tempat" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Lahir</label>
+                        <input type="text" id="form-guru-tanggal" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Jabatan</label>
+                        <input type="text" id="form-guru-jabatan" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none font-bold text-slate-700" placeholder="Guru Kelas">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ijazah</label>
+                        <input type="text" id="form-guru-ijazah" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium" placeholder="S1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status Pegawai</label>
+                        <input type="text" id="form-guru-status" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none font-bold text-slate-700" placeholder="PNS/PPPK">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tugas Tambahan</label>
+                        <input type="text" id="form-guru-tugas" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium" placeholder="Kelas 1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pangkat</label>
+                        <input type="text" id="form-guru-pangkat" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium" placeholder="Penata Muda">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Golongan</label>
+                        <input type="text" id="form-guru-golongan" class="w-full p-3 border-2 border-slate-100 rounded-xl focus:border-red-500 outline-none text-sm font-medium" placeholder="III/a">
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-[2rem]">
+                <button onclick="App.Guru.save()" class="w-full py-4 bg-red-600 text-white rounded-xl font-bold shadow-md hover:bg-red-700 transition">Simpan Data Guru</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST MESSAGE -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-2xl shadow-2xl z-[999] flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
+        <i class="fas fa-info-circle text-accent"></i>
+        <span id="toast-msg" class="font-medium text-sm">Pesan Info</span>
+    </div>
+
+    <script>
+        /**
+         * SDN BUKUR DIGITAL CONTROLLER
+         */
+        const App = {
+            state: { dataSiswa: [], dataGuru: [], profilSekolah: {}, qrLink: null },
+            
+            links: {
+                manual: {
+                    "1": "https://docs.google.com/forms/d/e/1FAIpQLSfYmmAuXl6kyS_OoNBlK0XADmgTGUl-tqXBOmsfLPpxKJ08lw/viewform?usp=pp_url&entry.253872892=AGNI+NABIILAH+MUSTAJAABAH&entry.621935051=H",
+                    "2": "https://docs.google.com/forms/d/e/1FAIpQLSdsUuE8O7X21JgVv0rNyRvwhETxUzHd2ioj3DkCG_EtNsaThA/viewform?usp=pp_url&entry.739355202=AMMAR+AHMAD+DUWI+SETIAWAN&entry.1124320169=H",
+                    "3": "https://docs.google.com/forms/d/e/1FAIpQLSdgl2EO3CEd0YcmNQWJR7kDIMq8W9NGBca26k7DN5xRSuWjkA/viewform?usp=pp_url&entry.1486167199=ACHMAD+DIDO+AMIRRUDIN&entry.528913227=H",
+                    "4": "https://docs.google.com/forms/d/e/1FAIpQLSddZ5qDM1vJMdg4yyr1A7WQk5S9uvjmvK6tufKPa52BgIL_nQ/viewform?usp=pp_url&entry.2128964894=ANINDYA+PUTRI+BASTOMI&entry.560176990=H",
+                    "5": "https://docs.google.com/forms/d/e/1FAIpQLSef1R3ZHxQShyGdie6Ml56LM6bLfGg54bpQOFeWLWpELeVCqg/viewform?usp=pp_url&entry.1498431531=ACHMAD+ALIANDO+NAYLENDRA+PUJIANTORO&entry.1239209070=H",
+                    "6": "https://docs.google.com/forms/d/e/1FAIpQLSdgGZPctrKRvUXABptoZ5YKKKrOCKM2gLS2EjaOgIH6xwP3vA/viewform?usp=pp_url&entry.1623756823=AHMAD+ZIDAN+FARIKHI&entry.1320493708=H"
+                },
+                rekap: {
+                    "1": "https://docs.google.com/spreadsheets/d/189-RuEAPeONWW1S4PdfUfyEBTnSmr3nLipFlPm85AZA/preview",
+                    "2": "https://docs.google.com/spreadsheets/d/14bS7WqkjrmbyGzbGN4j9iEL5rnx_76ZnMZqUFZgCBL8/preview",
+                    "3": "https://docs.google.com/spreadsheets/d/1lYEsNYMysF_-hAH87WmQbG1B4-Lp_p94FGllUFM0nzw/preview",
+                    "4": "https://docs.google.com/spreadsheets/d/1PZ8d_oVghuDEH3xteA2Q-gHEFP3k3gElNC2bGRcAKf0/preview",
+                    "5": "https://docs.google.com/spreadsheets/d/1FzWGVVMcaRrJ-05gLk6mLO2xo7Khg8DcDALejuqbeXA/preview",
+                    "6": "https://docs.google.com/spreadsheets/d/1BmtyCWtxwxDYlkCZMe-xEZIrH5mrT4aGuEKQYy9X-rA/preview"
+                }
+            },
+
+            init: () => {
+                setTimeout(() => {
+                    const s = document.getElementById('splash-screen');
+                    if(s) { s.style.opacity = '0'; setTimeout(() => s.classList.add('hidden'), 500); }
+                }, 1200);
+            },
+
+            nav: (view, title = '') => {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                
+                App.ui.toggle('qr-loader', false);
+                App.ui.toggle('qr-error', false);
+                const mainIframe = document.getElementById('main-iframe');
+                if(view !== 'webview' && mainIframe) mainIframe.src = '';
+                
+                const target = document.getElementById('view-' + view);
+                if(target) target.classList.remove('hidden');
+
+                if (view === 'info-placeholder') {
+                    const titleEl = document.getElementById('placeholder-title');
+                    if(titleEl) titleEl.innerText = title;
+                }
+                else if (view === 'absensi-manual') { App.IframeMenu.setup('Absensi Manual', App.links.manual); }
+                else if (view === 'rekap-absen') { App.IframeMenu.setup('Rekap Absensi', App.links.rekap); }
+                else if (view === 'data-siswa') {
+                    const sSiswa = document.getElementById('search-siswa');
+                    if(sSiswa) sSiswa.value = '';
+                    App.Siswa.load();
+                }
+                else if (view === 'data-guru') {
+                    const sGuru = document.getElementById('search-guru');
+                    if(sGuru) sGuru.value = '';
+                    App.Guru.load();
+                }
+                else if (view === 'profil-sekolah') {
+                    App.Profil.load();
+                }
+            },
+
+            ui: {
+                toastTimer: null,
+                showToast: (msg) => {
+                    const t = document.getElementById('toast');
+                    if(!t) return;
+                    document.getElementById('toast-msg').innerText = msg;
+                    t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
+                    clearTimeout(App.ui.toastTimer);
+                    App.ui.toastTimer = setTimeout(() => {
+                        t.style.opacity = '0'; t.style.transform = 'translate(-50%, 40px)';
+                    }, 3500);
+                },
+                toggle: (id, show) => {
+                    const el = document.getElementById(id);
+                    if(el) show ? el.classList.remove('hidden') : el.classList.add('hidden');
+                }
+            },
+
+            gas: (func, arg1) => new Promise((resolve, reject) => {
+                if (typeof google !== 'undefined' && google.script && google.script.run) {
+                    const runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+                    if (func === 'getStudentDataFromDrive') runner.getStudentDataFromDrive();
+                    else if (func === 'saveStudentDataToDrive') runner.saveStudentDataToDrive(arg1);
+                    else if (func === 'getTeacherDataFromDrive') runner.getTeacherDataFromDrive();
+                    else if (func === 'saveTeacherDataToDrive') runner.saveTeacherDataToDrive(arg1);
+                    else if (func === 'getProfilSekolahFromDrive') runner.getProfilSekolahFromDrive();
+                    else if (func === 'saveProfilSekolahToDrive') runner.saveProfilSekolahToDrive(arg1);
+                    else reject(new Error("Fungsi GAS tidak dikenali oleh pemanggil."));
+                } else {
+                    reject(new Error("Bukan lingkungan GAS Google."));
+                }
+            }),
+
+            IframeMenu: {
+                setup: (title, linksObj) => {
+                    App.ui.toggle('view-iframe-menu', true);
+                    const mTitle = document.getElementById('iframe-menu-title');
+                    if(mTitle) mTitle.innerHTML = title;
+                    
+                    const mSelect = document.getElementById('iframe-menu-select');
+                    if(mSelect) mSelect.value = '';
+                    
+                    App.ui.toggle('iframe-menu-container', false);
+                    const mFrame = document.getElementById('iframe-menu-frame');
+                    if(mFrame) mFrame.src = '';
+                    
+                    const btn = document.getElementById('iframe-menu-btn');
+                    if(btn) {
+                        btn.onclick = () => {
+                            const val = document.getElementById('iframe-menu-select').value;
+                            if(!val) return App.ui.showToast('Pilih kelas terlebih dahulu!');
+                            document.getElementById('iframe-menu-frame').src = linksObj[val];
+                            App.ui.toggle('iframe-menu-container', true);
+                        };
+                    }
+                }
+            },
+
+            Scanner: {
+                processImage: (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    App.ui.toggle('qr-error', false);
+                    App.ui.toggle('qr-loader', true);
+                    
+                    if (typeof Html5Qrcode === 'undefined') {
+                        App.ui.toggle('qr-loader', false);
+                        return App.ui.showToast("Modul pemindai belum siap.");
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const cvs = document.createElement('canvas');
+                            const ctx = cvs.getContext('2d');
+                            let w = img.width, h = img.height, max = 800;
+                            if (w > h) { if (w > max) { h *= max/w; w = max; } } 
+                            else { if (h > max) { w *= max/h; h = max; } }
+                            cvs.width = w; cvs.height = h;
+                            ctx.filter = 'contrast(1.2) grayscale(0.2)'; 
+                            ctx.drawImage(img, 0, 0, w, h);
+                            
+                            cvs.toBlob((blob) => {
+                                const optFile = new File([blob], "qr.jpg", { type: "image/jpeg" });
+                                const scanner = new Html5Qrcode("reader");
+                                scanner.scanFile(optFile, true)
+                                    .then(text => {
+                                        App.ui.toggle('qr-loader', false);
+                                        App.Scanner.showConfirm(text);
+                                    })
+                                    .catch(err => {
+                                        App.ui.toggle('qr-loader', false);
+                                        App.ui.toggle('qr-error', true);
+                                    });
+                            }, 'image/jpeg', 0.9);
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                },
+                showConfirm: (text) => {
+                    App.state.qrLink = text;
+                    const rText = document.getElementById('qr-result-text');
+                    if(rText) rText.innerText = text;
+                    App.ui.toggle('modal-qr-confirm', true);
+                },
+                closeConfirm: () => {
+                    App.ui.toggle('modal-qr-confirm', false);
+                    const qrInp = document.getElementById('qr-input');
+                    if(qrInp) qrInp.value = '';
+                },
+                openLink: () => {
+                    App.Scanner.closeConfirm();
+                    const mIframe = document.getElementById('main-iframe');
+                    if(mIframe) mIframe.src = App.state.qrLink;
+                    App.nav('webview');
+                }
+            },
+
+            Siswa: {
+                load: async () => {
+                    App.ui.toggle('loader-siswa', true);
+                    const container = document.getElementById('list-siswa');
+                    if(container) container.innerHTML = '';
+                    try {
+                        const csvText = await App.gas('getStudentDataFromDrive');
+                        if(csvText) App.Siswa.parse(csvText);
+                        else App.Siswa.render(JSON.parse(localStorage.getItem('DB_SISWA')) || []);
+                    } catch(e) { App.Siswa.render(JSON.parse(localStorage.getItem('DB_SISWA')) || []); } 
+                    finally { App.ui.toggle('loader-siswa', false); }
+                },
+                sync: async () => {
+                    localStorage.setItem('DB_SISWA', JSON.stringify(App.state.dataSiswa));
+                    if(typeof Papa === 'undefined') return;
+                    const mapping = App.state.dataSiswa.map(s => ({"Nama": s.nama, "JK": s.jk, "Rombel Saat Ini": s.kelas, "NISN": s.nisn, "Tempat Lahir": s.tempatLahir, "Tanggal Lahir": s.tanggalLahir, "Alamat": s.alamat, "Dusun": s.dusun}));
+                    const csv = Papa.unparse({ fields: ["Nama", "JK", "Rombel Saat Ini", "NISN", "Tempat Lahir", "Tanggal Lahir", "Alamat", "Dusun"], data: mapping });
+                    try { await App.gas('saveStudentDataToDrive', csv); } catch(e){}
+                },
+                importCSV: (e) => {
+                    const f = e.target.files[0]; if(!f) return;
+                    App.ui.toggle('loader-siswa', true);
+                    const r = new FileReader();
+                    r.onload = (ev) => {
+                        App.Siswa.parse(ev.target.result);
+                        App.Siswa.sync();
+                        App.ui.toggle('loader-siswa', false);
+                        App.ui.showToast("Impor Siswa Berhasil!");
+                    };
+                    r.readAsText(f); e.target.value = '';
+                },
+                parse: (text) => {
+                    if(typeof Papa === 'undefined') return;
+                    Papa.parse(text, { skipEmptyLines: true, complete: (res) => {
+                        const r = res.data; let head = -1;
+                        for (let i = 0; i < Math.min(r.length, 20); i++) { if (r[i] && r[i].includes('Nama') && r[i].includes('NISN')) { head = i; break; } }
+                        if (head === -1) return App.Siswa.render([]);
+                        const h = r[head];
+                        const iNm=h.indexOf('Nama'), iJk=h.indexOf('JK'), iKl=h.indexOf('Rombel Saat Ini'), iNsn=h.indexOf('NISN'), iTmp=h.indexOf('Tempat Lahir'), iTgl=h.indexOf('Tanggal Lahir'), iAlm=h.indexOf('Alamat'), iDsn=h.indexOf('Dusun');
+                        let data = [];
+                        for (let i = head + 1; i < r.length; i++) {
+                            if (r[i].length > iNm && r[i][iNm] && r[i][iNm].trim()) {
+                                data.push({ nama: r[i][iNm].trim(), jk: r[i][iJk]||'-', kelas: r[i][iKl]||'-', nisn: r[i][iNsn]||'-', tempatLahir: iTmp>-1?r[i][iTmp]||'-':'-', tanggalLahir: iTgl>-1?r[i][iTgl]||'-':'-', alamat: r[i][iAlm]||'-', dusun: r[i][iDsn]||'-' });
+                            }
+                        }
+                        App.state.dataSiswa = data; localStorage.setItem('DB_SISWA', JSON.stringify(data)); App.Siswa.render(data);
+                    }});
+                },
+                render: (data) => {
+                    const c = document.getElementById('list-siswa');
+                    const cInfo = document.getElementById('count-siswa');
+                    if(cInfo) cInfo.innerText = `${data.length} Siswa Ditemukan`;
+                    if(!c) return;
+                    if(data.length === 0) { c.innerHTML = `<div class="col-span-1 md:col-span-2 p-10 text-center border-2 border-dashed border-slate-300 rounded-2xl"><i class="fas fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-slate-500 font-bold">Data Kosong</p></div>`; return; }
+                    let html = '';
+                    data.forEach(s => {
+                        const ic = s.jk === 'P' ? '<i class="fas fa-female text-pink-500"></i>' : '<i class="fas fa-male text-blue-500"></i>';
+                        const idx = App.state.dataSiswa.indexOf(s);
+                        html += `<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative group overflow-hidden"><div class="absolute top-0 right-0 p-3 flex gap-2 translate-x-full group-hover:translate-x-0 transition-transform bg-white/90 backdrop-blur rounded-bl-xl shadow-sm"><button onclick="App.Siswa.openModal(${idx})" class="text-blue-500 hover:text-blue-700 bg-blue-50 w-8 h-8 rounded-full"><i class="fas fa-edit"></i></button><button onclick="App.Siswa.delete(${idx})" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-full"><i class="fas fa-trash"></i></button></div><div class="flex gap-4"><div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-2xl border border-slate-100 flex-shrink-0">${ic}</div><div class="pr-16 w-full"><h3 class="font-bold text-slate-800 text-sm md:text-base leading-tight">${s.nama}</h3><span class="inline-block bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded mt-1">${s.kelas}</span><div class="mt-3 text-[11px] text-slate-500 space-y-1"><p><i class="fas fa-id-badge w-4 opacity-50"></i> <span class="font-mono text-slate-700 font-semibold">${s.nisn}</span></p><p><i class="fas fa-birthday-cake w-4 opacity-50"></i> ${s.tempatLahir}, ${s.tanggalLahir}</p><p><i class="fas fa-map-marker-alt w-4 opacity-50"></i> ${s.alamat} ${s.dusun!=='-'?'('+s.dusun+')':''}</p></div></div></div></div>`;
+                    });
+                    c.innerHTML = html;
+                },
+                filter: () => {
+                    const el = document.getElementById('search-siswa'); if(!el) return;
+                    const q = el.value.toLowerCase();
+                    const d = App.state.dataSiswa.filter(s => `${s.nama} ${s.kelas} ${s.nisn}`.toLowerCase().includes(q));
+                    App.Siswa.render(d);
+                },
+                openModal: (idx = -1) => {
+                    App.ui.toggle('modal-siswa', true);
+                    const titleEl = document.getElementById('modal-siswa-title'); if(titleEl) titleEl.innerText = idx >= 0 ? "Edit Siswa" : "Tambah Siswa";
+                    const idEl = document.getElementById('form-siswa-id'); if(idEl) idEl.value = idx;
+                    const s = idx >= 0 ? App.state.dataSiswa[idx] : {nama:'',jk:'L',kelas:'',nisn:'',tempatLahir:'',tanggalLahir:'',alamat:'',dusun:''};
+                    ['nama','jk','kelas','nisn','tempat','tanggal','alamat','dusun'].forEach(k => {
+                        let objK = k; if(k==='tempat')objK='tempatLahir'; if(k==='tanggal')objK='tanggalLahir';
+                        const el = document.getElementById('form-siswa-'+k); if(el) el.value = s[objK];
+                    });
+                },
+                closeModal: () => App.ui.toggle('modal-siswa', false),
+                save: () => {
+                    const idEl = document.getElementById('form-siswa-id'); const idx = idEl ? parseInt(idEl.value) : -1;
+                    const namaEl = document.getElementById('form-siswa-nama'); const nm = namaEl ? namaEl.value.toUpperCase() : '';
+                    if(!nm) return alert("Nama wajib diisi!");
+                    const d = { nama: nm, jk: document.getElementById('form-siswa-jk')?.value || 'L', kelas: document.getElementById('form-siswa-kelas')?.value || "-", nisn: document.getElementById('form-siswa-nisn')?.value || "-", tempatLahir: document.getElementById('form-siswa-tempat')?.value || "-", tanggalLahir: document.getElementById('form-siswa-tanggal')?.value || "-", alamat: document.getElementById('form-siswa-alamat')?.value || "-", dusun: document.getElementById('form-siswa-dusun')?.value || "-" };
+                    if(idx >= 0) App.state.dataSiswa[idx] = d; else App.state.dataSiswa.push(d);
+                    App.Siswa.closeModal(); App.Siswa.sync(); App.Siswa.filter(); App.ui.showToast("Data Tersimpan!");
+                },
+                delete: (idx) => { if(confirm("Yakin hapus siswa ini?")) { App.state.dataSiswa.splice(idx,1); App.Siswa.sync(); App.Siswa.filter(); App.ui.showToast("Terhapus!"); } },
+                clearAll: () => { if(confirm("HAPUS SEMUA DATA SISWA DARI SISTEM?")) { App.state.dataSiswa = []; App.Siswa.sync(); App.Siswa.filter(); App.ui.showToast("Sistem Dikosongkan."); } }
+            },
+
+            Guru: {
+                load: async () => {
+                    App.ui.toggle('loader-guru', true);
+                    const container = document.getElementById('list-guru'); if(container) container.innerHTML = '';
+                    try {
+                        const csvText = await App.gas('getTeacherDataFromDrive');
+                        if(csvText) App.Guru.parse(csvText); else App.Guru.render(JSON.parse(localStorage.getItem('DB_GURU')) || []);
+                    } catch(e) { App.Guru.render(JSON.parse(localStorage.getItem('DB_GURU')) || []); } 
+                    finally { App.ui.toggle('loader-guru', false); }
+                },
+                sync: async () => {
+                    localStorage.setItem('DB_GURU', JSON.stringify(App.state.dataGuru));
+                    if(typeof Papa === 'undefined') return;
+                    const mapping = App.state.dataGuru.map(g => ({"Nama": g.nama, "JK": g.jk, "NIP": g.nip, "Tempat Lahir": g.tempatLahir, "Tanggal Lahir": g.tanggalLahir, "Ijazah": g.ijazah, "Jabatan": g.jabatan, "Tugas Tambahan": g.tugasTambahan, "Pangkat": g.pangkat, "Golongan": g.golongan, "Status": g.status}));
+                    const csv = Papa.unparse({ fields: ["Nama", "JK", "NIP", "Tempat Lahir", "Tanggal Lahir", "Ijazah", "Jabatan", "Tugas Tambahan", "Pangkat", "Golongan", "Status"], data: mapping });
+                    try { await App.gas('saveTeacherDataToDrive', csv); } catch(e){}
+                },
+                importCSV: (e) => {
+                    const f = e.target.files[0]; if(!f) return;
+                    App.ui.toggle('loader-guru', true);
+                    const r = new FileReader();
+                    r.onload = (ev) => {
+                        App.Guru.parse(ev.target.result);
+                        App.Guru.sync();
+                        App.ui.toggle('loader-guru', false);
+                        App.ui.showToast("Impor Guru Berhasil!");
+                    };
+                    r.readAsText(f); e.target.value = '';
+                },
+                parse: (text) => {
+                    if(typeof Papa === 'undefined') return;
+                    Papa.parse(text, { skipEmptyLines: true, complete: (res) => {
+                        const r = res.data; const data = [];
+                        if (r[0] && r[0].includes('Nama') && r[0].includes('NIP')) {
+                            const h=r[0], iNm=h.indexOf('Nama'), iJk=h.indexOf('JK'), iNp=h.indexOf('NIP'), iTm=h.indexOf('Tempat Lahir'), iTg=h.indexOf('Tanggal Lahir'), iIj=h.indexOf('Ijazah'), iJb=h.indexOf('Jabatan'), iTug=h.indexOf('Tugas Tambahan'), iPk=h.indexOf('Pangkat'), iGl=h.indexOf('Golongan'), iSt=h.indexOf('Status');
+                            for (let i = 1; i < r.length; i++) data.push({ nama: r[i][iNm]||'-', jk: r[i][iJk]||'-', nip: r[i][iNp]||'-', tempatLahir: r[i][iTm]||'-', tanggalLahir: r[i][iTg]||'-', ijazah: r[i][iIj]||'-', jabatan: r[i][iJb]||'-', tugasTambahan: r[i][iTug]||'-', pangkat: r[i][iPk]||'-', golongan: r[i][iGl]||'-', status: r[i][iSt]||'-' });
+                        } else {
+                            let s = 0; for (let i = 0; i < Math.min(r.length, 10); i++) { if (r[i] && r[i].length>1 && (r[i][0]==="1."||(r[i][1]&&r[i][1].toUpperCase().includes("GIGIH")))) { s = i; break; } }
+                            for (let i = s; i < r.length; i++) {
+                                const r1 = r[i];
+                                if (r1 && r1.length>=7 && r1[1] && r1[1].trim()!=='' && r1[2] && (r1[2]==='L'||r1[2]==='P')) {
+                                    let np="-", tg="-", tgT="-", gl="-";
+                                    if (i+1 < r.length && r[i+1] && r[i+1].length>=6 && (!r[i+1][0]||r[i+1][0].trim()==='')) {
+                                        const r2=r[i+1]; np=r2[1]?r2[1].trim():"-"; tg=r2[3]?r2[3].trim():"-"; tgT=r2[5]?r2[5].trim():"-"; gl=r2[6]?r2[6].trim():"-"; i++; 
+                                    }
+                                    data.push({ nama: r1[1].trim(), jk: r1[2].trim(), nip: np, tempatLahir: r1[3].trim(), tanggalLahir: tg, ijazah: r1[4].trim(), jabatan: r1[5].trim(), tugasTambahan: tgT, pangkat: r1[6]?r1[6].trim():'-', golongan: gl, status: r1[7]?r1[7].trim():'-' });
+                                }
+                            }
+                        }
+                        App.state.dataGuru = data; localStorage.setItem('DB_GURU', JSON.stringify(data)); App.Guru.render(data);
+                    }});
+                },
+                render: (data) => {
+                    const c = document.getElementById('list-guru');
+                    const cInfo = document.getElementById('count-guru');
+                    if(cInfo) cInfo.innerText = `${data.length} Staf Ditemukan`;
+                    if(!c) return;
+                    if (data.length === 0) { c.innerHTML = `<div class="p-10 text-center border-2 border-dashed border-slate-300 rounded-2xl"><i class="fas fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-slate-500 font-bold">Data Kosong</p></div>`; return; }
+                    let html = '';
+                    data.forEach(g => {
+                        const ic = g.jk === 'P' ? '<i class="fas fa-female text-pink-500"></i>' : '<i class="fas fa-male text-blue-500"></i>';
+                        const idx = App.state.dataGuru.indexOf(g);
+                        let badge = 'bg-slate-100 text-slate-600';
+                        if(g.status === 'PNS') badge = 'bg-blue-100 text-blue-700'; else if(g.status.includes('PPPK')) badge = 'bg-teal-100 text-teal-700'; else if(g.status.includes('HONOR')||g.status.includes('GTT')) badge = 'bg-orange-100 text-orange-700';
+                        html += `<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative group overflow-hidden"><div class="absolute top-0 right-0 p-3 flex gap-2 translate-x-full group-hover:translate-x-0 transition-transform bg-white/90 backdrop-blur rounded-bl-xl shadow-sm z-10"><button onclick="App.Guru.openModal(${idx})" class="text-blue-500 hover:text-blue-700 bg-blue-50 w-8 h-8 rounded-full"><i class="fas fa-edit"></i></button><button onclick="App.Guru.delete(${idx})" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-full"><i class="fas fa-trash"></i></button></div><div class="flex flex-col md:flex-row gap-4"><div class="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-3xl border border-slate-100 flex-shrink-0 mx-auto md:mx-0">${ic}</div><div class="flex-1 text-center md:text-left"><h3 class="font-bold text-slate-800 text-base leading-tight">${g.nama}</h3><p class="text-xs text-red-600 font-bold mt-1"><i class="fas fa-briefcase opacity-70"></i> ${g.jabatan} ${g.tugasTambahan!=='-'?'('+g.tugasTambahan+')':''}</p><div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 text-left"><p><span class="opacity-70">NIP:</span> <br><span class="font-mono text-slate-800 font-semibold text-xs">${g.nip}</span></p><p><span class="opacity-70">TTL:</span> <br><span class="text-slate-800 font-medium">${g.tempatLahir}, ${g.tanggalLahir}</span></p><p><span class="opacity-70">Pendidikan:</span> <br><span class="text-slate-800 font-medium">${g.ijazah}</span></p><p><span class="opacity-70">Golongan:</span> <br><span class="text-slate-800 font-medium">${g.pangkat !=='-'?g.pangkat:''} ${g.golongan!=='-'?'('+g.golongan+')':''}</span></p></div><div class="mt-3 text-center md:text-left"><span class="inline-block px-3 py-1 rounded-lg text-[10px] font-extrabold tracking-wide uppercase ${badge}">${g.status}</span></div></div></div></div>`;
+                    });
+                    c.innerHTML = html;
+                },
+                filter: () => {
+                    const el = document.getElementById('search-guru'); if(!el) return;
+                    const q = el.value.toLowerCase();
+                    const d = App.state.dataGuru.filter(g => `${g.nama} ${g.nip} ${g.jabatan} ${g.tugasTambahan}`.toLowerCase().includes(q));
+                    App.Guru.render(d);
+                },
+                openModal: (idx = -1) => {
+                    App.ui.toggle('modal-guru', true);
+                    const tEl = document.getElementById('modal-guru-title'); if(tEl) tEl.innerText = idx >= 0 ? "Edit Guru" : "Tambah Guru";
+                    const idEl = document.getElementById('form-guru-id'); if(idEl) idEl.value = idx;
+                    const g = idx >= 0 ? App.state.dataGuru[idx] : {nama:'',nip:'',jk:'L',tempatLahir:'',tanggalLahir:'',ijazah:'',jabatan:'',tugasTambahan:'',status:'',pangkat:'',golongan:''};
+                    ['nama','nip','jk','tempat','tanggal','ijazah','jabatan','tugas','status','pangkat','golongan'].forEach(k => {
+                        let objK = k; if(k==='tempat')objK='tempatLahir'; if(k==='tanggal')objK='tanggalLahir'; if(k==='tugas')objK='tugasTambahan';
+                        const el = document.getElementById('form-guru-'+k); if(el) el.value = g[objK];
+                    });
+                },
+                closeModal: () => App.ui.toggle('modal-guru', false),
+                save: () => {
+                    const idEl = document.getElementById('form-guru-id'); const idx = idEl ? parseInt(idEl.value) : -1;
+                    const namaEl = document.getElementById('form-guru-nama'); const nm = namaEl ? namaEl.value.toUpperCase() : '';
+                    if(!nm) return alert("Nama wajib diisi!");
+                    const d = { nama: nm, nip: document.getElementById('form-guru-nip')?.value||"-", jk: document.getElementById('form-guru-jk')?.value || 'L', tempatLahir: document.getElementById('form-guru-tempat')?.value||"-", tanggalLahir: document.getElementById('form-guru-tanggal')?.value||"-", ijazah: document.getElementById('form-guru-ijazah')?.value||"-", jabatan: document.getElementById('form-guru-jabatan')?.value||"-", tugasTambahan: document.getElementById('form-guru-tugas')?.value||"-", status: document.getElementById('form-guru-status')?.value.toUpperCase()||"-", pangkat: document.getElementById('form-guru-pangkat')?.value||"-", golongan: document.getElementById('form-guru-golongan')?.value||"-" };
+                    if(idx >= 0) App.state.dataGuru[idx] = d; else App.state.dataGuru.push(d);
+                    App.Guru.closeModal(); App.Guru.sync(); App.Guru.filter(); App.ui.showToast("Data Tersimpan!");
+                },
+                delete: (idx) => { if(confirm("Yakin hapus guru ini?")) { App.state.dataGuru.splice(idx,1); App.Guru.sync(); App.Guru.filter(); App.ui.showToast("Terhapus!"); } },
+                clearAll: () => { if(confirm("HAPUS SEMUA DATA GURU DARI SISTEM?")) { App.state.dataGuru = []; App.Guru.sync(); App.Guru.filter(); App.ui.showToast("Sistem Dikosongkan."); } }
+            },
+
+            // ==============================================
+            // MODUL PROFIL SEKOLAH
+            // ==============================================
+            Profil: {
+                defaultData: {
+                    logo: "", identitas: "", visiMisi: "", sambutan: "", sejarah: "", struktur: "", dataPendidik: "", fasilitas: "", akreditasi: "", keunggulan: ""
+                },
+                load: async () => {
+                    App.ui.toggle('loader-profil', true);
+                    const container = document.getElementById('profil-read-mode');
+                    if(container) container.innerHTML = '';
+                    
+                    let data = null;
+                    try {
+                        const jsonText = await App.gas('getProfilSekolahFromDrive');
+                        if (jsonText) data = JSON.parse(jsonText);
+                    } catch(e) {
+                        try { data = JSON.parse(localStorage.getItem('DB_PROFIL_SEKOLAH')); } catch(e2){}
+                    } finally {
+                        App.ui.toggle('loader-profil', false);
+                    }
+                    
+                    App.state.profilSekolah = data || App.Profil.defaultData;
+                    App.Profil.renderRead();
+                },
+                renderRead: () => {
+                    const d = App.state.profilSekolah || App.Profil.defaultData;
+                    const container = document.getElementById('profil-read-mode');
+                    if(!container) return;
+                    
+                    let logoHtml = d.logo ? `<img src="${d.logo}" class="h-32 object-contain mx-auto mb-6 rounded-xl shadow-sm border border-slate-100 bg-white p-2">` : `<div class="w-32 h-32 mx-auto bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-slate-400 mb-6 border-2 border-dashed border-slate-300"><i class="fas fa-image text-3xl mb-2"></i><span class="text-[10px]">Belum ada logo</span></div>`;
+                    
+                    const formatText = (txt) => txt ? txt.replace(/\n/g, '<br>') : '<span class="italic text-slate-400 font-normal">Belum ada data.</span>';
+
+                    container.innerHTML = `
+                        ${logoHtml}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-id-card mr-2"></i> Identitas & Legalitas</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.identitas)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-bullseye mr-2"></i> Visi dan Misi</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.visiMisi)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm md:col-span-2"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-microphone mr-2"></i> Sambutan Kepala Sekolah</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.sambutan)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-history mr-2"></i> Sejarah Singkat</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.sejarah)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-sitemap mr-2"></i> Struktur Organisasi</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.struktur)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-users mr-2"></i> Pendidik & Tenaga Kependidikan</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.dataPendidik)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-building mr-2"></i> Fasilitas Sekolah</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.fasilitas)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-award mr-2"></i> Akreditasi & Prestasi</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.akreditasi)}</p></div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><h3 class="font-extrabold text-indigo-700 mb-3 border-b border-slate-100 pb-2"><i class="fas fa-star mr-2"></i> Program Khusus / Keunggulan</h3><p class="text-sm text-slate-600 leading-relaxed font-medium">${formatText(d.keunggulan)}</p></div>
+                        </div>
+                    `;
+                },
+                toggleEdit: (isEdit) => {
+                    App.ui.toggle('profil-read-mode', !isEdit);
+                    App.ui.toggle('profil-edit-mode', isEdit);
+                    App.ui.toggle('btn-edit-profil', !isEdit);
+                    
+                    if(isEdit) {
+                        const d = App.state.profilSekolah || App.Profil.defaultData;
+                        const ids = ['identitas', 'visi', 'sambutan', 'sejarah', 'struktur', 'pendidik', 'fasilitas', 'akreditasi', 'keunggulan'];
+                        const keys = ['identitas', 'visiMisi', 'sambutan', 'sejarah', 'struktur', 'dataPendidik', 'fasilitas', 'akreditasi', 'keunggulan'];
+                        
+                        ids.forEach((id, index) => {
+                            const el = document.getElementById('input-profil-' + id);
+                            if(el) el.value = d[keys[index]] || '';
+                        });
+                        
+                        const logoImg = document.getElementById('preview-profil-logo');
+                        if(logoImg) {
+                            logoImg.src = d.logo || '';
+                            if(d.logo) {
+                                logoImg.classList.remove('hidden');
+                                logoImg.dataset.base64 = d.logo;
+                            } else {
+                                logoImg.classList.add('hidden');
+                                logoImg.dataset.base64 = '';
+                            }
+                        }
+                    }
+                },
+                handleLogoUpload: (e) => {
+                    const file = e.target.files[0];
+                    if(!file) return;
+                    if(file.size > 500000) { // 500KB max
+                        alert("Ukuran gambar terlalu besar. Maksimal 500KB.");
+                        e.target.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const base64 = ev.target.result;
+                        if(!App.state.profilSekolah) App.state.profilSekolah = {};
+                        App.state.profilSekolah.logo = base64; 
+                        const prev = document.getElementById('preview-profil-logo');
+                        if(prev) {
+                            prev.src = base64;
+                            prev.dataset.base64 = base64;
+                            prev.classList.remove('hidden');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                },
+                save: async () => {
+                    const btn = document.getElementById('btn-save-profil');
+                    if(btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...'; btn.disabled = true; }
+
+                    const logoImg = document.getElementById('preview-profil-logo');
+                    const safeVal = (id) => { const el = document.getElementById(id); return el ? el.value : ""; };
+
+                    const newData = {
+                        logo: (logoImg && logoImg.dataset.base64) ? logoImg.dataset.base64 : (App.state.profilSekolah.logo || ""),
+                        identitas: safeVal('input-profil-identitas'),
+                        visiMisi: safeVal('input-profil-visi'),
+                        sambutan: safeVal('input-profil-sambutan'),
+                        sejarah: safeVal('input-profil-sejarah'),
+                        struktur: safeVal('input-profil-struktur'),
+                        dataPendidik: safeVal('input-profil-pendidik'),
+                        fasilitas: safeVal('input-profil-fasilitas'),
+                        akreditasi: safeVal('input-profil-akreditasi'),
+                        keunggulan: safeVal('input-profil-keunggulan'),
+                    };
+
+                    App.state.profilSekolah = newData;
+                    try { localStorage.setItem('DB_PROFIL_SEKOLAH', JSON.stringify(newData)); } catch(e){}
+
+                    try {
+                        await App.gas('saveProfilSekolahToDrive', JSON.stringify(newData));
+                    } catch(e) {
+                        console.warn("GAS sync failed or skipped. Data saved locally.");
+                    }
+
+                    App.Profil.renderRead();
+                    App.Profil.toggleEdit(false);
+                    App.ui.showToast("Profil Sekolah berhasil diperbarui!");
+                    
+                    if(btn) { btn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan Profil'; btn.disabled = false; }
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', App.init);
+    </script>
+</body>
+</html>
